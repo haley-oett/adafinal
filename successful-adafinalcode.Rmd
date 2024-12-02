@@ -1,0 +1,264 @@
+---
+title: "Untitled"
+author: "Haley Oetterer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+#in this there is asprin use vs cacner diagnosis with age and sex not confounded for. 
+#Aspirin vs cancer not using sex or age at all. 
+#Aspirin vs Cancer with both as binary variables. 
+#Aspirin vs Cancer with age and sex as confounders 
+#Aspriin vs cancer with only age as confouder excluding sex
+```
+
+```
+
+
+
+```{r}
+# Load libraries
+library(dplyr)
+library(ggplot2)
+
+
+# Define the maximum number of rows based on your data
+n <- 9254  # Total rows from Age count
+
+# Create the dataset
+data <- data.frame(
+  Age = sample(c("<20", "20-39", "40-59", "60+"), size = n, replace = TRUE, prob = c(121, 3411, 3364, 2358) / 9254),
+  Sex = sample(c("male", "female"), size = n, replace = TRUE, prob = c(4629, 4625) / 9251),
+  Cancer = sample(c(1, 0), size = n, replace = TRUE, prob = c(46, 8851) / 8897),
+  Aspirin_Use = sample(c("daily", "every_other_day", "another_schedule", "none"), size = n, replace = TRUE, prob = c(1034, 69, 122, 2657) / 3882)
+)
+
+```
+
+
+
+```{r}
+#table1 
+install.packages("tableone")
+library(tableone)
+
+# Define categorical variables
+categorical_vars <- c("Age", "Sex", "Cancer", "Aspirin_Use")
+
+# Create the Table 1
+table1 <- CreateTableOne(vars = categorical_vars, data = data, factorVars = categorical_vars)
+
+# Print Table 1
+print(table1)
+
+
+```
+
+
+
+
+```{r}
+# Fit logistic regression
+model <- glm(Cancer ~ Aspirin_Use + Age + Sex, family = binomial(link = "logit"), data = data)
+
+# Summary of the model
+summary(model)
+
+```
+
+
+```{r}
+library(ggplot2)
+
+# Predict probabilities
+data$predicted <- predict(model, type = "response")
+
+# Plot
+ggplot(data, aes(x = Aspirin_Use, y = predicted, color = Age)) +
+  geom_point() +
+  facet_wrap(~Sex) +
+  labs(title = "Predicted Cancer Risk by Aspirin Use",
+       x = "Aspirin Use",
+       y = "Predicted Probability of Cancer") +
+  theme_minimal()
+```
+
+
+```{r}
+#only aspirin use vs cancer resgression line graph steps 
+n <- 9254
+
+# dataset
+data <- data.frame(
+  Aspirin_Use = sample(c("daily", "every_other_day", "another_schedule", "none"), size = n, replace = TRUE, 
+                       prob = c(1034, 69, 122, 2657) / 3882),
+  Cancer = sample(c(1, 0), size = n, replace = TRUE, prob = c(46, 8851) / 8897)
+)
+
+# Fit logistic regression model
+model <- glm(Cancer ~ Aspirin_Use, family = binomial(link = "logit"), data = data)
+
+# View model summary
+summary(model)
+
+```
+
+
+```{r}
+#line graph aspirinuse vs cancer
+# prediction
+prediction_data <- data.frame(Aspirin_Use = unique(data$Aspirin_Use))
+ library(ggplot2)
+
+# Plot the logistic regression line with adjusted axis limits
+ggplot(data, aes(x = Aspirin_Use, y = Cancer)) +
+  stat_smooth(method = "glm", method.args = list(family = "binomial"), color = "blue", se = FALSE) +
+  geom_point(aes(y = as.numeric(Cancer)), position = position_jitter(width = 0.2, height = 0.02), alpha = 0.4) +
+  scale_y_continuous(limits = c(0, 0.1)) +  # Adjust the y-axis to zoom in
+  labs(title = "Logistic Regression: Aspirin Use and Cancer (Zoomed In)",
+       x = "Aspirin Use",
+       y = "Probability of Cancer") +
+  theme_minimal()
+
+```
+
+
+```{r}
+#cancer vs aspirin use, both binary vairables
+# Create a binary variable for aspirin use
+data$Aspirin_Use_Binary <- ifelse(data$Aspirin_Use == "none", "No", "Yes")
+
+# Fit logistic regression model
+model_binary <- glm(Cancer ~ Aspirin_Use_Binary, family = binomial(link = "logit"), data = data)
+
+# View model summary
+summary(model_binary)
+
+# Create a new dataset for prediction
+prediction_data_binary <- data.frame(Aspirin_Use_Binary = c("No", "Yes"))
+
+# Predict probabilities based on the model
+prediction_data_binary$predicted_probability <- predict(model_binary, newdata = prediction_data_binary, type = "response")
+
+
+```
+
+```{r}
+#graph of binary cancer vs aspirin use 
+
+library(ggplot2)
+
+# Plot the logistic regression
+ggplot(prediction_data_binary, aes(x = Aspirin_Use_Binary, y = predicted_probability)) +
+  geom_bar(stat = "identity", fill = "blue", width = 0.5) +
+  labs(title = "Logistic Regression: Cancer Diagnosis vs Aspirin Use (Binary)",
+       x = "Aspirin Use (Yes/No)",
+       y = "Predicted Probability of Cancer") +
+  theme_minimal()
+
+```
+
+
+```{r}
+#sex & age as confounders ---------------------------
+
+# Define the total number of rows based on the largest count (Age: 9254)
+n <- 9254
+
+# Simulate the dataset
+data <- data.frame(
+  Age = sample(c("<20", "20-39", "40-59", "60+"), size = n, replace = TRUE, prob = c(121, 3411, 3364, 2358) / 9254),
+  Sex = sample(c("male", "female"), size = n, replace = TRUE, prob = c(4629, 4625) / 9251),
+  Cancer = sample(c(1, 0), size = n, replace = TRUE, prob = c(46, 8851) / 8897),
+  Aspirin_Use = sample(c("daily", "every_other_day", "another_schedule", "none"), size = n, replace = TRUE, prob = c(1034, 69, 122, 2657) / 3882)
+)
+
+
+```
+
+
+```{r}
+# Fit logistic regression model with Age and Sex as confounders
+model <- glm(Cancer ~ Aspirin_Use + Age + Sex, family = binomial(link = "logit"), data = data)
+
+# Summary of the model
+summary(model)
+
+```
+
+
+```{r}
+library(ggplot2)
+
+# Predict probabilities using the fitted model
+data$predicted <- predict(model, type = "response")
+
+# Plot the predicted probabilities
+ggplot(data, aes(x = Aspirin_Use, y = predicted, color = Age)) +
+  geom_point(position = position_jitter(width = 0.2, height = 0.01)) +
+  facet_wrap(~Sex) +
+  labs(title = "Predicted Cancer Risk by Aspirin Use (Adjusted for Age and Sex)",
+       x = "Aspirin Use",
+       y = "Predicted Probability of Cancer") +
+  theme_minimal()
+
+```
+
+```{r}
+#just age as confouder excluding sex
+# Define the total number of rows based on the largest count (Age: 9254)
+n <- 9254
+
+# Simulate the dataset
+data <- data.frame(
+  Age = sample(c("<20", "20-39", "40-59", "60+"), size = n, replace = TRUE, prob = c(121, 3411, 3364, 2358) / 9254),
+  Cancer = sample(c(1, 0), size = n, replace = TRUE, prob = c(46, 8851) / 8897),
+  Aspirin_Use = sample(c("daily", "every_other_day", "another_schedule", "none"), size = n, replace = TRUE, prob = c(1034, 69, 122, 2657) / 3882)
+)
+
+```
+
+
+```{r}
+# Fit logistic regression model with Age as a confounder
+model <- glm(Cancer ~ Aspirin_Use + Age, family = binomial(link = "logit"), data = data)
+
+# Summary of the model
+summary(model)
+
+```
+
+```{r}
+library(ggplot2)
+
+# Predict probabilities
+data$predicted <- predict(model, type = "response")
+
+
+
+# Plot the predicted probabilities
+ggplot(data, aes(x = Aspirin_Use, y = predicted, color = Age)) +
+  geom_point(position = position_jitter(width = 0.2, height = 0.01)) +
+  labs(title = "Predicted Cancer Risk by Aspirin Use (Adjusted for Age)",
+       x = "Aspirin Use",
+       y = "Predicted Probability of Cancer") +
+  theme_minimal()
+
+```
+
+
+```{r}
+#github
+
+```
+
+
+
+
+
+
+
+
+
+```{r}
