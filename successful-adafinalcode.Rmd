@@ -65,6 +65,9 @@ model <- glm(Cancer ~ Aspirin_Use + Age + Sex, family = binomial(link = "logit")
 # Summary of the model
 summary(model)
 
+# Odds Ratios and Confidence Intervals
+exp(cbind(OddsRatio = coef(model), confint(model)))
+
 ```
 
 
@@ -102,6 +105,9 @@ model <- glm(Cancer ~ Aspirin_Use, family = binomial(link = "logit"), data = dat
 # View model summary
 summary(model)
 
+# Odds Ratios and Confidence Intervals
+exp(cbind(OddsRatio = coef(model), confint(model)))
+
 ```
 
 
@@ -135,11 +141,14 @@ model_binary <- glm(Cancer ~ Aspirin_Use_Binary, family = binomial(link = "logit
 # View model summary
 summary(model_binary)
 
-# Create a new dataset for prediction
+# Create dataset for prediction
 prediction_data_binary <- data.frame(Aspirin_Use_Binary = c("No", "Yes"))
 
 # Predict probabilities based on the model
 prediction_data_binary$predicted_probability <- predict(model_binary, newdata = prediction_data_binary, type = "response")
+
+# Odds Ratios and Confidence Intervals
+exp(cbind(OddsRatio = coef(model), confint(model)))
 
 
 ```
@@ -184,6 +193,12 @@ model <- glm(Cancer ~ Aspirin_Use + Age + Sex, family = binomial(link = "logit")
 
 # Summary of the model
 summary(model)
+
+# Compute Confidence Intervals
+confint(model)  
+
+# Odds Ratios and Confidence Intervals
+exp(cbind(OddsRatio = coef(model), confint(model)))
 
 ```
 
@@ -249,7 +264,8 @@ ggplot(data, aes(x = Aspirin_Use, y = predicted, color = Age)) +
 
 
 ```{r}
-#github
+
+
 
 ```
 
